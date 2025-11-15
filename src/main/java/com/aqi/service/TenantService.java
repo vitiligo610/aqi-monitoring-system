@@ -5,6 +5,7 @@ import com.aqi.entity.Tenant;
 import com.aqi.exception.ResourceNotFoundException;
 import com.aqi.repository.TenantRepository;
 import com.aqi.security.TenantAuthentication;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -14,13 +15,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class TenantService {
     private static final Logger logger = LoggerFactory.getLogger(TenantService.class);
     private final TenantRepository tenantRepository;
-
-    public TenantService(TenantRepository tenantRepository) {
-        this.tenantRepository = tenantRepository;
-    }
 
     public TenantDto getCurrentTenant() {
         TenantAuthentication authentication = (TenantAuthentication) SecurityContextHolder.getContext().getAuthentication();

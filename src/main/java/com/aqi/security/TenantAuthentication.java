@@ -1,25 +1,20 @@
 package com.aqi.security;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 
 import java.util.Collection;
 import java.util.Collections;
 
+@RequiredArgsConstructor
 public class TenantAuthentication implements Authentication {
-    private final String tenantSecret;
-    private final String tenantName;
-    private boolean authenticated = true;
-
     @Getter
     private final Long tenantId;
-
-    public TenantAuthentication(Long tenantId, String tenantName, String tenantSecret) {
-        this.tenantId = tenantId;
-        this.tenantName = tenantName;
-        this.tenantSecret = tenantSecret;
-    }
+    private final String tenantName;
+    private final String tenantSecret;
+    private boolean authenticated = true;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

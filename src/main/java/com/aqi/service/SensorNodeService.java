@@ -3,18 +3,16 @@ package com.aqi.service;
 import com.aqi.entity.SensorNode;
 import com.aqi.exception.ResourceNotFoundException;
 import com.aqi.repository.SensorNodeRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class SensorNodeService {
     private final SensorNodeRepository sensorNodeRepository;
-
-    public SensorNodeService(SensorNodeRepository sensorNodeRepository) {
-        this.sensorNodeRepository = sensorNodeRepository;
-    }
 
     @Transactional
     public SensorNode addNode(String name, String location) {

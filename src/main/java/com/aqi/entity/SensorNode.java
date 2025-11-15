@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnDefault;
 
 @Entity
 @Table(name = "sensor_nodes")
@@ -20,4 +21,7 @@ public class SensorNode {
 
     @Column(nullable = false)
     private String location;
+
+    @ColumnDefault("true")
+    private boolean active;
 }

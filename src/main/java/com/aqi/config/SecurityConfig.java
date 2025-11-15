@@ -1,6 +1,7 @@
 package com.aqi.config;
 
 import com.aqi.security.TenantAuthorizationFilter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -14,12 +15,9 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
     private final TenantAuthorizationFilter tenantAuthorizationFilter;
-
-    public SecurityConfig(TenantAuthorizationFilter tenantAuthorizationFilter) {
-        this.tenantAuthorizationFilter = tenantAuthorizationFilter;
-    }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
