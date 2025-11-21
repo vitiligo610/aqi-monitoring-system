@@ -35,6 +35,7 @@ public class OpenWeatherMapService {
     private static final String OWM_AQI_URL = "https://api.openweathermap.org/data/2.5/air_pollution";
     private static final String OWM_WEATHER_URL = "https://api.openweathermap.org/data/2.5/weather";
 
+    // TODO: Move this method to LocationService class. Refactor method calls to their respective classes accordingly. Change AirPollutionResponse to use from dto.openaq package
     public LocationDataDto getExternalLocationData(Double lat, Double lon) {
         log.info("Fetching location data. lat: {}, lon: {}", lat, lon);
 
@@ -66,6 +67,7 @@ public class OpenWeatherMapService {
                 .build();
     }
 
+    // TODO: Move this method to OpenAQService Class
     private AirPollutionResponse fetchAirPollutionData(Double lat, Double lon) {
         String url = UriComponentsBuilder.fromUriString(OWM_AQI_URL)
                 .queryParam("lat", lat)
@@ -125,6 +127,7 @@ public class OpenWeatherMapService {
         }
     }
 
+    // TODO: Move to OpenAQ Service
     private Map<String, Double> extractPollutants(AirPollutionResponse.Components components) {
         Map<String, Double> pollutants = new HashMap<>();
 
