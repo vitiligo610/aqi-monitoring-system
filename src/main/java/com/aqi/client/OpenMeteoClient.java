@@ -35,6 +35,9 @@ public class OpenMeteoClient {
     @Value("${app.open-meteo.forecast-days:5}")
     private Integer forecastDays;
 
+    @Value("${app.open-meteo.past-days:30}")
+    private Integer pastDays;
+
     public WeatherForecastResponse fetchWeather(Double latitude, Double longitude) {
         return fetchWeatherInternal(latitude, longitude, true);
     }
@@ -44,11 +47,15 @@ public class OpenMeteoClient {
     }
 
     public AirQualityResponse fetchAirQuality(Double latitude, Double longitude) {
-        return fetchAirQualityInternal(latitude, longitude, true);
+        return fetchAirQualityInternal(latitude, longitude, true, false);
     }
 
     public AirQualityResponse fetchAirQualitySummary(Double latitude, Double longitude) {
-        return fetchAirQualityInternal(latitude, longitude, false);
+        return fetchAirQualityInternal(latitude, longitude, false, false);
+    }
+
+    public AirQualityResponse fetchAirQualityHistory(Double latitude, Double longitude) {
+        return fetchAirQualityInternal(latitude, longitude, false, true);
     }
 
     public ReverseGeocodingResponse fetchLocationName(Double latitude, Double longitude) {
@@ -85,31 +92,33 @@ public class OpenMeteoClient {
             builder.queryParam("forecast_days", summaryForecastDays);
         }
 
-//        if (pastDays != null) builder.queryParam("past_days", pastDays);
-
         return executeRequest(builder.toUriString(), WeatherForecastResponse.class);
     }
 
     private AirQualityResponse fetchAirQualityInternal(
             Double latitude,
             Double longitude,
-            Boolean isDetailedData
+            Boolean isDetailedData,
+            Boolean isPastData
     ) {
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(OM_AIR_QUALITY_API_URL)
                 .queryParam("latitude", latitude)
                 .queryParam("longitude", longitude)
-                .queryParam("current", AQI_PARAMS)
                 .queryParam("hourly", AQI_PARAMS)
                 .queryParam("timezone", "auto")
                 .queryParam("timeformat", "unixtime");
 
+        if (!isPastData) {
+            builder.queryParam("current", AQI_PARAMS);
+        }
+
         if (isDetailedData) {
             builder.queryParam("forecast_days", forecastDays);
+        } else if (isPastData) {
+            builder.queryParam("past_days", pastDays);
         } else {
             builder.queryParam("forecast_days", summaryForecastDays);
         }
-
-//        if (pastDays != null) builder.queryParam("past_days", pastDays);
 
         return executeRequest(builder.toUriString(), AirQualityResponse.class);
     }

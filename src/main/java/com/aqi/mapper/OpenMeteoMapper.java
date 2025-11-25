@@ -1,10 +1,7 @@
 package com.aqi.mapper;
 
 import com.aqi.dto.geocoding.ReverseGeocodingResponse;
-import com.aqi.dto.location.LocationAirQualityData;
-import com.aqi.dto.location.LocationClimateData;
-import com.aqi.dto.location.LocationClimateSummaryData;
-import com.aqi.dto.location.LocationWeatherData;
+import com.aqi.dto.location.*;
 import com.aqi.dto.meteo.AirQualityResponse;
 import com.aqi.dto.meteo.WeatherForecastResponse;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,9 +21,6 @@ public class OpenMeteoMapper {
 
     @Value("${app.open-meteo.forecast-days:5}")
     private Integer forecastDays;
-
-    @Value("${app.open-meteo.past-days:60}")
-    private Integer pastDays;
 
     public LocationClimateData mapToClimateData(WeatherForecastResponse weather, AirQualityResponse aqi, ReverseGeocodingResponse geo) {
 
@@ -99,7 +93,7 @@ public class OpenMeteoMapper {
 
         int hourlyLimit = Math.min(response.getHourly().getTime().size(), 24);
 
-        var hourly = LocationAirQualityData.FutureForecast.builder()
+        var hourly = LocationAirQualityData.Forecast.builder()
                 .time(response.getHourly().getTime().subList(0, hourlyLimit))
                 .aqi(response.getHourly().getUsAqi().subList(0, hourlyLimit))
                 .pm2_5(response.getHourly().getPm2_5().subList(0, hourlyLimit))
@@ -114,7 +108,7 @@ public class OpenMeteoMapper {
 
         Integer utcOffset = response.getUtcOffsetSeconds();
 
-        var daily = LocationAirQualityData.FutureForecast.builder()
+        var daily = LocationAirQualityData.Forecast.builder()
                 .time(dailyDates)
                 .aqi(aggregateDailyInt(dailyDates, response.getHourly().getTime(), response.getHourly().getUsAqi(), utcOffset))
                 .pm2_5(aggregateDailyDouble(dailyDates, response.getHourly().getTime(), response.getHourly().getPm2_5(), utcOffset))
@@ -172,6 +166,60 @@ public class OpenMeteoMapper {
                 .weatherCode(weather.getDaily().getWeatherCode())
                 .aqi(aggregateDailyInt(dailyDates, aqi.getHourly().getTime(), aqi.getHourly().getUsAqi(), utcOffset))
                 .build();
+    }
+
+    public LocationAirQualityHistoryData mapToLocationAQHistoryData(AirQualityResponse aqi) {
+        var hourly = LocationAirQualityData.Forecast.builder()
+                .time(aqi.getHourly().getTime())
+                .aqi(aqi.getHourly().getUsAqi())
+                .pm2_5(aqi.getHourly().getPm2_5())
+                .pm10(aqi.getHourly().getPm10())
+                .o3(aqi.getHourly().getO3())
+                .co(aqi.getHourly().getCo())
+                .no2(aqi.getHourly().getNo2())
+                .so2(aqi.getHourly().getSo2())
+                .build();
+
+        int utcOffset = (aqi.getUtcOffsetSeconds() != null) ? aqi.getUtcOffsetSeconds() : 0;
+        List<Long> dailyDates = buildAQDailyDates(aqi);
+
+        var daily = LocationAirQualityData.Forecast.builder()
+                .time(dailyDates)
+                .aqi(aggregateDailyInt(dailyDates, aqi.getHourly().getTime(), aqi.getHourly().getUsAqi(), utcOffset))
+                .pm2_5(aggregateDailyDouble(dailyDates, aqi.getHourly().getTime(), aqi.getHourly().getPm2_5(), utcOffset))
+                .pm10(aggregateDailyDouble(dailyDates, aqi.getHourly().getTime(), aqi.getHourly().getPm10(), utcOffset))
+                .o3(aggregateDailyDouble(dailyDates, aqi.getHourly().getTime(), aqi.getHourly().getO3(), utcOffset))
+                .co(aggregateDailyDouble(dailyDates, aqi.getHourly().getTime(), aqi.getHourly().getCo(), utcOffset))
+                .no2(aggregateDailyDouble(dailyDates, aqi.getHourly().getTime(), aqi.getHourly().getNo2(), utcOffset))
+                .so2(aggregateDailyDouble(dailyDates, aqi.getHourly().getTime(), aqi.getHourly().getSo2(), utcOffset))
+                .build();
+
+        return LocationAirQualityHistoryData.builder()
+                .latitude(aqi.getLatitude())
+                .longitude(aqi.getLongitude())
+                .timezone(aqi.getTimezone())
+                .timestamp(Instant.now().getEpochSecond())
+                .utcOffsetSeconds(utcOffset)
+                .hourly(hourly)
+                .daily(daily)
+                .build();
+    }
+
+    private List<Long> buildAQDailyDates(AirQualityResponse aqi) {
+        if (aqi == null || aqi.getHourly() == null) return Collections.emptyList();
+
+        int utcOffset = (aqi.getUtcOffsetSeconds() != null) ? aqi.getUtcOffsetSeconds() : 0;
+
+        Set<String> dailyDatesSet = new HashSet<>();
+        List<Long> dailyDates = new ArrayList<>();
+
+        aqi.getHourly().getTime().forEach(timestamp -> {
+            var dateKey = getDayKey(timestamp, utcOffset);
+            boolean isNewDate = dailyDatesSet.add(dateKey);
+            if (isNewDate) dailyDates.add(timestamp);
+        });
+
+        return dailyDates;
     }
 
     private List<Long> extractDailyDates(WeatherForecastResponse response, int limit) {

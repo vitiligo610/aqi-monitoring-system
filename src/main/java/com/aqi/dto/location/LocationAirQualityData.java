@@ -13,8 +13,8 @@ public class LocationAirQualityData {
     @Builder.Default
     private AirQualityUnits units = new AirQualityUnits();
     private CurrentData current;
-    private FutureForecast hourly;
-    private FutureForecast daily;
+    private Forecast hourly;
+    private Forecast daily;
 
     @Data
     @Builder
@@ -30,7 +30,7 @@ public class LocationAirQualityData {
 
     @Data
     @Builder
-    public static class FutureForecast {
+    public static class Forecast {
         private List<Long> time;
         private List<Integer> aqi;
         private List<Double> pm2_5;

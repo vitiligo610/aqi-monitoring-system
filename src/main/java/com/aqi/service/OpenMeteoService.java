@@ -2,6 +2,7 @@ package com.aqi.service;
 
 import com.aqi.client.OpenMeteoClient;
 import com.aqi.dto.geocoding.ReverseGeocodingResponse;
+import com.aqi.dto.location.LocationAirQualityHistoryData;
 import com.aqi.dto.location.LocationClimateData;
 import com.aqi.dto.location.LocationClimateSummaryData;
 import com.aqi.dto.meteo.AirQualityResponse;
@@ -76,6 +77,25 @@ public class OpenMeteoService {
         } catch (Exception e) {
             log.error("Error during data aggregation", e);
             throw new RuntimeException("Failed to fetch climate data summary", e);
+        }
+    }
+
+    public LocationAirQualityHistoryData getLocationAQHistoryData(Double latitude, Double longitude) {
+        log.info("Fetching air quality history data for {}, {}", latitude, longitude);
+
+        CompletableFuture<AirQualityResponse> aqiFuture = CompletableFuture.supplyAsync(() ->
+                meteoClient.fetchAirQualityHistory(latitude, longitude)
+        );
+
+        try {
+            CompletableFuture.allOf(aqiFuture).join();
+
+            return meteoMapper.mapToLocationAQHistoryData(
+                    aqiFuture.get()
+            );
+        } catch (Exception e) {
+            log.error("Error during data aggregation", e);
+            throw new RuntimeException("Failed to fetch air quality history data", e);
         }
     }
 }

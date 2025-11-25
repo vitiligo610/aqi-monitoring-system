@@ -1,5 +1,6 @@
 package com.aqi.controller;
 
+import com.aqi.dto.location.LocationAirQualityHistoryData;
 import com.aqi.dto.location.LocationClimateData;
 import com.aqi.dto.location.LocationClimateSummaryData;
 import com.aqi.service.OpenMeteoService;
@@ -24,5 +25,10 @@ public class LocationDataController {
     @GetMapping("/summary")
     public LocationClimateSummaryData getLocationClimateSummaryData(@RequestParam Double latitude, @RequestParam Double longitude) {
         return openMeteoService.getLocationClimateSummaryData(latitude, longitude);
+    }
+
+    @GetMapping("/history")
+    public LocationAirQualityHistoryData getLocationAQHistoryData(@RequestParam Double latitude, @RequestParam Double longitude) {
+        return openMeteoService.getLocationAQHistoryData(latitude, longitude);
     }
 }
