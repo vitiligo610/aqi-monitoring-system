@@ -5,13 +5,19 @@ import com.aqi.dto.geocoding.ReverseGeocodingResponse;
 import com.aqi.dto.location.LocationAirQualityHistoryData;
 import com.aqi.dto.location.LocationClimateData;
 import com.aqi.dto.location.LocationClimateSummaryData;
+import com.aqi.dto.location.MapLocationData;
 import com.aqi.dto.meteo.AirQualityResponse;
 import com.aqi.dto.meteo.WeatherForecastResponse;
+import com.aqi.dto.openaq.ClusterProjection;
 import com.aqi.mapper.OpenMeteoMapper;
+import com.aqi.repository.OpenAqLocationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 @Slf4j
@@ -21,6 +27,7 @@ public class OpenMeteoService {
 
     private final OpenMeteoClient meteoClient;
     private final OpenMeteoMapper meteoMapper;
+    private final OpenAqService openAqService;
 
     public LocationClimateData getLocationClimateData(Double latitude, Double longitude) {
         log.info("Fetching climate data for {}, {}", latitude, longitude);
@@ -97,5 +104,42 @@ public class OpenMeteoService {
             log.error("Error during data aggregation", e);
             throw new RuntimeException("Failed to fetch air quality history data", e);
         }
+    }
+
+    public List<MapLocationData> getMapLocations(List<Double> bbox, Integer gridResolution) {
+        List<ClusterProjection> clusters =
+                openAqService.getClustersInBoundingBox(bbox, gridResolution);
+
+        if (clusters.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        var responseFuture = fetchAqiForClusters(clusters);
+
+        try {
+            CompletableFuture.allOf(responseFuture).join();
+
+            return meteoMapper.mapToMapLocations(
+                    responseFuture.get(), clusters
+            );
+        } catch (Exception e) {
+            log.error("Error during data aggregation", e);
+            throw new RuntimeException("Failed to fetch map data", e);
+        }
+    }
+
+    private CompletableFuture<AirQualityResponse[]> fetchAqiForClusters(List<ClusterProjection> clusters) {
+        List<Double> latPoints = new ArrayList<>();
+        List<Double> lonPoints = new ArrayList<>();
+
+        for (var cluster : clusters) {
+            latPoints.add(cluster.getLat());
+            lonPoints.add(cluster.getLon());
+        }
+
+        log.info("Batch fetching AQI for {} clusters, latitudes: {}, longitudes {}", clusters.size(), latPoints, lonPoints);
+        return CompletableFuture.supplyAsync(() ->
+                meteoClient.fetchAirQualityBatch(latPoints, lonPoints)
+        );
     }
 }

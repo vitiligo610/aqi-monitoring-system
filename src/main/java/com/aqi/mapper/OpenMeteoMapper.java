@@ -4,6 +4,8 @@ import com.aqi.dto.geocoding.ReverseGeocodingResponse;
 import com.aqi.dto.location.*;
 import com.aqi.dto.meteo.AirQualityResponse;
 import com.aqi.dto.meteo.WeatherForecastResponse;
+import com.aqi.dto.openaq.ClusterProjection;
+import com.aqi.repository.OpenAqLocationRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -228,6 +230,31 @@ public class OpenMeteoMapper {
                 .hourly(hourly)
                 .daily(daily)
                 .build();
+    }
+
+    public List<MapLocationData> mapToMapLocations(AirQualityResponse[] responses, List<ClusterProjection> clusters) {
+
+        if (responses == null || clusters == null) return Collections.emptyList();
+
+        List<MapLocationData> locationList = new ArrayList<>();
+
+        for (int i = 0; i < responses.length; i++) {
+            if (i >= clusters.size()) break;
+
+            AirQualityResponse response = responses[i];
+            ClusterProjection cluster = clusters.get(i);
+
+            locationList.add(MapLocationData.builder()
+                    .latitude(response.getLatitude())
+                    .longitude(response.getLongitude())
+                    .aqi(response.getCurrent().getUsAqi())
+                    .utcOffsetSeconds(response.getUtcOffsetSeconds())
+                    .pointCount(cluster.getPointCount())
+                    .isCluster(cluster.getPointCount() > 1)
+                    .build());
+        }
+
+        return locationList;
     }
 
     private List<Long> buildAQDailyDates(AirQualityResponse aqi) {

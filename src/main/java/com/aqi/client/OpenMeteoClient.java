@@ -13,6 +13,9 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -56,6 +59,28 @@ public class OpenMeteoClient {
 
     public AirQualityResponse fetchAirQualityHistory(Double latitude, Double longitude) {
         return fetchAirQualityInternal(latitude, longitude, false, true);
+    }
+
+    public AirQualityResponse[] fetchAirQualityBatch(List<Double> latitudes, List<Double> longitudes) {
+        String latParam = latitudes.stream().map(String::valueOf).collect(Collectors.joining(","));
+        String lonParam = longitudes.stream().map(String::valueOf).collect(Collectors.joining(","));
+
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(OM_AIR_QUALITY_API_URL)
+                .queryParam("latitude", latParam)
+                .queryParam("longitude", lonParam)
+                .queryParam("current", "us_aqi")
+                .queryParam("timezone", "auto")
+                .queryParam("timeformat", "unixtime");
+
+        String url = builder.toUriString();
+        log.info("Executing batch request: {}", url);
+
+        if (latitudes.size() == 1) {
+            AirQualityResponse singleResponse = executeRequest(url, AirQualityResponse.class);
+            return new AirQualityResponse[]{ singleResponse };
+        } else {
+            return executeRequest(url, AirQualityResponse[].class);
+        }
     }
 
     public ReverseGeocodingResponse fetchLocationName(Double latitude, Double longitude) {
