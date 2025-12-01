@@ -79,6 +79,7 @@ public class CommunityReportService {
         return MapLocationData.builder()
                 .latitude(entity.getLatitude())
                 .longitude(entity.getLongitude())
+                .markerType("pollution_report")
                 .reportType(entity.getReportType())
                 .reportDescription(entity.getDescription())
                 .reportedAt(entity.getReportedAt().getEpochSecond())

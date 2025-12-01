@@ -16,8 +16,8 @@ public class MapLocationData {
     private Integer utcOffsetSeconds;
 
     // aqi or report
-    @JsonProperty("pin_type")
-    private String pinType;
+    @JsonProperty("marker_type")
+    private String markerType;
 
     private Integer aqi;
 

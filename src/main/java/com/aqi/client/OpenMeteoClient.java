@@ -38,7 +38,7 @@ public class OpenMeteoClient {
     @Value("${app.open-meteo.forecast-days:5}")
     private Integer forecastDays;
 
-    @Value("${app.open-meteo.past-days:30}")
+    @Value("${app.open-meteo.past-days:60}")
     private Integer pastDays;
 
     public WeatherForecastResponse fetchWeather(Double latitude, Double longitude) {

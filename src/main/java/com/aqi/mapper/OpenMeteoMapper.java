@@ -198,7 +198,7 @@ public class OpenMeteoMapper {
         if (aqi == null || aqi.getHourly() == null) return null;
 
         long currentEpoch = Instant.now().getEpochSecond();
-        long cutoffTime = currentEpoch - (48 * 60 * 60);
+        long cutoffTime = currentEpoch - (3 * 24 * 60 * 60);
 
         List<Long> allTimes = aqi.getHourly().getTime();
         int startIndex = 0;
@@ -264,7 +264,7 @@ public class OpenMeteoMapper {
             locationList.add(MapLocationData.builder()
                     .latitude(response.getLatitude())
                     .longitude(response.getLongitude())
-                    .pinType("aqi")
+                    .markerType("aqi")
                     .aqi(response.getCurrent().getUsAqi())
                     .utcOffsetSeconds(response.getUtcOffsetSeconds())
                     .pointCount(cluster.getPointCount())
