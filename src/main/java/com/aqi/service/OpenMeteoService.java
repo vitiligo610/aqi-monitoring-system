@@ -9,6 +9,7 @@ import com.aqi.dto.location.MapLocationData;
 import com.aqi.dto.meteo.AirQualityResponse;
 import com.aqi.dto.meteo.WeatherForecastResponse;
 import com.aqi.dto.openaq.ClusterProjection;
+import com.aqi.dto.report.PollutionReportDto;
 import com.aqi.mapper.OpenMeteoMapper;
 import com.aqi.repository.OpenAqLocationRepository;
 import lombok.RequiredArgsConstructor;
@@ -28,8 +29,9 @@ public class OpenMeteoService {
     private final OpenMeteoClient meteoClient;
     private final OpenMeteoMapper meteoMapper;
     private final OpenAqService openAqService;
+    private final CommunityReportService reportService;
 
-    public LocationClimateData getLocationClimateData(Double latitude, Double longitude) {
+    public LocationClimateData getLocationClimateData(Double latitude, Double longitude, Double reportsRadiusKm) {
         log.info("Fetching climate data for {}, {}", latitude, longitude);
 
         CompletableFuture<WeatherForecastResponse> weatherFuture = CompletableFuture.supplyAsync(() ->
@@ -44,13 +46,18 @@ public class OpenMeteoService {
                 meteoClient.fetchLocationName(latitude, longitude)
         );
 
+        CompletableFuture<List<PollutionReportDto>> nearbyReportsFuture = CompletableFuture.supplyAsync(() ->
+                reportService.getReportsNearLocation(latitude, longitude, reportsRadiusKm)
+        );
+
         try {
-            CompletableFuture.allOf(weatherFuture, aqiFuture, geoFuture).join();
+            CompletableFuture.allOf(weatherFuture, aqiFuture, geoFuture, nearbyReportsFuture).join();
 
             return meteoMapper.mapToClimateData(
                     weatherFuture.get(),
                     aqiFuture.get(),
-                    geoFuture.get()
+                    geoFuture.get(),
+                    nearbyReportsFuture.get()
             );
         } catch (Exception e) {
             log.error("Error during data aggregation", e);
@@ -58,7 +65,7 @@ public class OpenMeteoService {
         }
     }
     
-    public LocationClimateSummaryData getLocationClimateSummaryData(Double latitude, Double longitude) {
+    public LocationClimateSummaryData getLocationClimateSummaryData(Double latitude, Double longitude, Double reportsRadiusKm) {
         log.info("Fetching climate summary data for {}, {}", latitude, longitude);
 
         CompletableFuture<WeatherForecastResponse> weatherFuture = CompletableFuture.supplyAsync(() ->
@@ -73,13 +80,18 @@ public class OpenMeteoService {
                 meteoClient.fetchLocationName(latitude, longitude)
         );
 
+        CompletableFuture<List<PollutionReportDto>> nearbyReportsFuture = CompletableFuture.supplyAsync(() ->
+                reportService.getReportsNearLocation(latitude, longitude, reportsRadiusKm)
+        );
+
         try {
-            CompletableFuture.allOf(weatherFuture, aqiFuture, geoFuture).join();
+            CompletableFuture.allOf(weatherFuture, aqiFuture, geoFuture, nearbyReportsFuture).join();
 
             return meteoMapper.mapToLocationClimateSummaryData(
                     weatherFuture.get(),
                     aqiFuture.get(),
-                    geoFuture.get()
+                    geoFuture.get(),
+                    nearbyReportsFuture.get()
             );
         } catch (Exception e) {
             log.error("Error during data aggregation", e);

@@ -24,17 +24,19 @@ public class LocationDataController {
     @GetMapping
     public LocationClimateData getLocationClimateData(
             @RequestParam Double latitude,
-            @RequestParam Double longitude
+            @RequestParam Double longitude,
+            @RequestParam(name = "reports_radius_km", defaultValue = "10.0") Double reportsRadiusKm
     ) {
-        return openMeteoService.getLocationClimateData(latitude, longitude);
+        return openMeteoService.getLocationClimateData(latitude, longitude, reportsRadiusKm);
     }
 
     @GetMapping("/summary")
     public LocationClimateSummaryData getLocationClimateSummaryData(
             @RequestParam Double latitude,
-            @RequestParam Double longitude
+            @RequestParam Double longitude,
+            @RequestParam(name = "reports_radius_km", defaultValue = "10.0") Double reportsRadiusKm
     ) {
-        return openMeteoService.getLocationClimateSummaryData(latitude, longitude);
+        return openMeteoService.getLocationClimateSummaryData(latitude, longitude, reportsRadiusKm);
     }
 
     @GetMapping("/history")

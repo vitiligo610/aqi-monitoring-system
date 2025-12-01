@@ -18,4 +18,15 @@ public interface PollutionReportRepository extends JpaRepository<PollutionReport
             @Param("minLon") Double minLon,
             @Param("maxLon") Double maxLon
     );
+
+    @Query(value = """
+        SELECT * FROM pollution_reports p 
+        WHERE (6371 * acos(cos(radians(:lat)) * cos(radians(p.latitude)) * cos(radians(p.longitude) - radians(:lon)) + sin(radians(:lat)) * sin(radians(p.latitude)))) < :radius
+        ORDER BY p.reported_at DESC
+        """, nativeQuery = true)
+    List<PollutionReport> findReportsNearLocation(
+            @Param("lat") Double latitude,
+            @Param("lon") Double longitude,
+            @Param("radius") Double radiusKm
+    );
 }

@@ -54,6 +54,13 @@ public class CommunityReportService {
         return reports.stream().map(this::mapToDto).collect(Collectors.toList());
     }
 
+    public List<PollutionReportDto> getReportsNearLocation(Double latitude, Double longitude, Double radiusKm) {
+        if (latitude == null || longitude == null) return Collections.emptyList();
+
+        List<PollutionReport> reports = reportRepository.findReportsNearLocation(latitude, longitude, radiusKm);
+        return reports.stream().map(this::mapToDto).collect(Collectors.toList());
+    }
+
     private PollutionReportDto mapToDto(PollutionReport entity) {
         return PollutionReportDto.builder()
                 .id(entity.getId())
