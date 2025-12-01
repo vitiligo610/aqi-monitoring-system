@@ -50,9 +50,10 @@ public class LocationDataController {
     @GetMapping("/map")
     public List<MapLocationData> getMapData(
             @RequestParam("bounding_box") List<Double> boundingBox,
-            @RequestParam(name = "grid_resolution", defaultValue = "10") Integer gridResolution
+            @RequestParam(name = "grid_resolution", defaultValue = "10") Integer gridResolution,
+            @RequestParam(name = "marker_type", defaultValue = "aqi") String markerType
     ) {
-        return openMeteoService.getMapLocations(boundingBox, gridResolution);
+        return openMeteoService.getMapLocations(boundingBox, gridResolution, markerType);
     }
 
     @PostMapping("/report")
@@ -60,12 +61,5 @@ public class LocationDataController {
             @RequestBody CreateReportRequest request
     ) {
         return communityReportService.createReport(request);
-    }
-
-    @GetMapping("/reports")
-    public List<PollutionReportDto> getReports(
-            @RequestParam("bounding_box") List<Double> boundingBox
-    ) {
-        return communityReportService.getReportsInBoundingBox(boundingBox);
     }
 }

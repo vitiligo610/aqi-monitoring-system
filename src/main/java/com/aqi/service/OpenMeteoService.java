@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 @Slf4j
@@ -117,28 +118,26 @@ public class OpenMeteoService {
         }
     }
 
-    public List<MapLocationData> getMapLocations(List<Double> bbox, Integer gridResolution) {
-        List<ClusterProjection> clusters =
-                openAqService.getClustersInBoundingBox(bbox, gridResolution);
-
-
-
-        if (clusters.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        var responseFuture = fetchAqiForClusters(clusters);
-
-        var reportsFuture = CompletableFuture.supplyAsync(() ->
-                reportService.getReportsInBoundingBox(bbox)
-        );
-
+    public List<MapLocationData> getMapLocations(List<Double> bbox, Integer gridResolution, String markerType) {
         try {
-            CompletableFuture.allOf(responseFuture, reportsFuture).join();
+            if (Objects.equals(markerType, "pollution_report")) {
+                return reportService.getReportsInBoundingBox(bbox);
+            }
+
+            List<ClusterProjection> clusters =
+                    openAqService.getClustersInBoundingBox(bbox, gridResolution);
+
+
+            if (clusters.isEmpty()) {
+                return Collections.emptyList();
+            }
+
+            var responseFuture = fetchAqiForClusters(clusters);
+
+            CompletableFuture.allOf(responseFuture).join();
 
             return meteoMapper.mapToMapLocations(
-                    responseFuture.get(), clusters,
-                    reportsFuture.get()
+                    responseFuture.get(), clusters
             );
         } catch (Exception e) {
             log.error("Error during data aggregation", e);

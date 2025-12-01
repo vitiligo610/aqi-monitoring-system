@@ -248,8 +248,7 @@ public class OpenMeteoMapper {
 
     public List<MapLocationData> mapToMapLocations(
             AirQualityResponse[] responses,
-            List<ClusterProjection> clusters,
-            List<PollutionReportDto> reports
+            List<ClusterProjection> clusters
     ) {
 
         if (responses == null || clusters == null) return Collections.emptyList();
@@ -272,16 +271,6 @@ public class OpenMeteoMapper {
                     .isCluster(cluster.getPointCount() > 1)
                     .build());
         }
-
-        reports.forEach(report -> locationList.add(MapLocationData.builder()
-                        .latitude(report.getLatitude())
-                        .longitude(report.getLongitude())
-                        .pinType("report")
-                        .reportId(report.getId())
-                        .reportType(report.getReportType().getDisplayName())
-                        .reportDescription(report.getDescription())
-                        .reportedAt(report.getReportedAt())
-                        .build()));
 
         return locationList;
     }

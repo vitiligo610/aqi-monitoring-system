@@ -1,5 +1,6 @@
 package com.aqi.service;
 
+import com.aqi.dto.location.MapLocationData;
 import com.aqi.request.CreateReportRequest;
 import com.aqi.dto.report.PollutionReportDto;
 import com.aqi.entity.PollutionReport;
@@ -39,7 +40,7 @@ public class CommunityReportService {
         return mapToDto(saved);
     }
 
-    public List<PollutionReportDto> getReportsInBoundingBox(List<Double> bbox) {
+    public List<MapLocationData> getReportsInBoundingBox(List<Double> bbox) {
         if (bbox == null || bbox.size() != 4) {
             return Collections.emptyList();
         }
@@ -51,7 +52,7 @@ public class CommunityReportService {
 
         List<PollutionReport> reports = reportRepository.findReportsInBounds(swLat, neLat, swLon, neLon);
 
-        return reports.stream().map(this::mapToDto).collect(Collectors.toList());
+        return reports.stream().map(this::mapToMarker).collect(Collectors.toList());
     }
 
     public List<PollutionReportDto> getReportsNearLocation(Double latitude, Double longitude, Double radiusKm) {
@@ -71,6 +72,16 @@ public class CommunityReportService {
                 .description(entity.getDescription())
                 .reportedAt(entity.getReportedAt().getEpochSecond())
                 .userName(entity.getUserName())
+                .build();
+    }
+
+    private MapLocationData mapToMarker(PollutionReport entity) {
+        return MapLocationData.builder()
+                .latitude(entity.getLatitude())
+                .longitude(entity.getLongitude())
+                .reportType(entity.getReportType())
+                .reportDescription(entity.getDescription())
+                .reportedAt(entity.getReportedAt().getEpochSecond())
                 .build();
     }
 }

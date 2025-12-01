@@ -1,5 +1,6 @@
 package com.aqi.dto.location;
 
+import com.aqi.dto.report.ReportType;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Data;
@@ -30,7 +31,7 @@ public class MapLocationData {
     private Long reportId;
 
     @JsonProperty("report_type")
-    private String reportType;
+    private ReportType reportType;
 
     @JsonProperty("report_description")
     private String reportDescription;
